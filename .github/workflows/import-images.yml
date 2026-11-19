@@ -1,0 +1,37 @@
+name: Copy HW2 JPG assets
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/import-images.yml'
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download original HW2 JPGs
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p images
+          for i in 1 2 3 4; do
+            curl --retry 3 -fLsS "https://raw.githubusercontent.com/fedorstoiets/goit-markup-hw-02/main/images/team-${i}.jpg" -o "images/team-${i}.jpg"
+          done
+          for i in 1 2 3 4 5 6; do
+            curl --retry 3 -fLsS "https://raw.githubusercontent.com/fedorstoiets/goit-markup-hw-02/main/images/portfolio-${i}.jpg" -o "images/portfolio-${i}.jpg"
+          done
+          for f in images/*.jpg; do
+            test -s "$f"
+            file "$f" | grep -qi JPEG
+          done
+      - name: Commit image assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add images
+          if ! git diff --cached --quiet; then
+            git commit -m "assets: import ten JPGs from HW2"
+            git push
+          fi
